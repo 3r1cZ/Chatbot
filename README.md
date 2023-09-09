@@ -6,3 +6,4 @@ This project is an AI chatbot developed with Python using the bigram learning mo
 * How to use Jupyter Notebook
 * How to use the PyTorch framework to organize and generate data
 * How to develop very simple machine learning algorithms such as the bigram learning model
+* How to develop a transformer model using the self-attention mechanism
