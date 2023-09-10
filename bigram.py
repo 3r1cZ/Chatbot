@@ -3,8 +3,8 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 # hyperparameters
-batch_size = 32 # how many independent sequences will we process in parallel?
-block_size = 8 # what is the maximum context length for predictions?
+batch_size = 32 # number of independent sequences being processed in parallel
+block_size = 8 # the maximum context length for predictions
 max_iters = 3000
 eval_interval = 300
 learning_rate = 1e-2
@@ -15,22 +15,22 @@ n_embd = 32
 
 torch.manual_seed(1337) # set seed for reproducibility
 
-# wget https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
 with open('human_chat.txt', 'r', encoding='utf-8') as f:
     text = f.read()
 
-# all the unique characters that occur in this text
+# all the unique characters that occur in the text
 chars = sorted(list(set(text)))
 vocab_size = len(chars)
 # create a mapping from characters to integers
 stoi = { ch:i for i,ch in enumerate(chars) }
+# integers to characters
 itos = { i:ch for i,ch in enumerate(chars) }
-encode = lambda s: [stoi[c] for c in s] # encoder: take a string, output a list of integers
-decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integers, output a string
+encode = lambda s: [stoi[c] for c in s] # encoder: receive a string, output a list of integers
+decode = lambda l: ''.join([itos[i] for i in l]) # decoder: receive a list of integers, output a string
 
 # Train and test splits
 data = torch.tensor(encode(text), dtype=torch.long)
-n = int(0.9*len(data)) # first 90% will be train, rest val
+n = int(0.9*len(data)) # first 90% will be for training, rest val
 train_data = data[:n]
 val_data = data[n:]
 
@@ -81,13 +81,15 @@ class BigramLanguageModel(nn.Module):
         if targets is None:
             loss = None
         else:
-            B, T, C = logits.shape
+            B, T, C = logits.shape # batch, time, channels
+            # adjusting to match cross_entropy
             logits = logits.view(B*T, C)
             targets = targets.view(B*T)
-            loss = F.cross_entropy(logits, targets)
+            loss = F.cross_entropy(logits, targets) # checking quality of predictions
 
         return logits, loss
 
+    # extends each batch (B) in the time (T) dimension for max_new_tokens
     def generate(self, idx, max_new_tokens):
         # idx is (B, T) array of indices in the current context
         for _ in range(max_new_tokens):
@@ -122,9 +124,9 @@ for iter in range(max_iters):
 
     # evaluate the loss
     logits, loss = model(xb, yb)
-    optimizer.zero_grad(set_to_none=True)
-    loss.backward()
-    optimizer.step()
+    optimizer.zero_grad(set_to_none=True) # zeroing all the gradients from previous step
+    loss.backward() # getting the gradients from all of the parameters
+    optimizer.step() # using gradients to update parameters
 
 # generate from the model
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
