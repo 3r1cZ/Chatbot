@@ -4,14 +4,14 @@ from torch.nn import functional as F
 import pandas as pd
 
 # hyperparameters
-batch_size = 32 # number of independent sequences being processed in parallel
-block_size = 16 # maximum context length for predictions
+batch_size = 4 # number of independent sequences being processed in parallel
+block_size = 8 # maximum context length for predictions
 max_iters = 5000
 eval_interval = 500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu' # runs on gpu, else cpu
 eval_iters = 200
-n_embd = 64
+n_embd = 32
 n_head = 6
 n_layer = 3
 dropout = 0.2
@@ -21,16 +21,13 @@ torch.manual_seed(1337) # set seed for reproducibility
 
  
 # reading csv file
-text = pd.read_csv("/kaggle/input/chatbot-dataset-topical-chat/topical_chat.csv", usecols = ["message"])
+text = pd.read_csv("topical_chat.csv", usecols = ["message"])
 text = text["message"].tolist()
 # with open('human_chat.txt', 'r', encoding='utf-8') as f:
 #    text = f.read()
-#print(text)
 
 # all the unique characters that occur in the text
-
 chars = sorted(list(set(text)))
-# print(chars)
 
 vocab_size = len(chars)
 # create a mapping from characters to integers and vice versa
@@ -92,7 +89,7 @@ class Head(nn.Module):
         wei = q @ k.transpose(-2,-1) * k.shape[-1]**-0.5 # matrix multiplication: (B, T, hs) @ (B, hs, T) -> (B, T, T)
         wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf')) # (B, T, T) , triangular masking
         wei = F.softmax(wei, dim=-1) # (B, T, T) , exponentiates and normalizes in order to create the weighting (-inf will turn into 0)
-        wei = self.dropout(wei)
+        wei = self.dropout(wei) # dropping out nodes to prevent overfitting
         # perform the weighted aggregation of the values
         v = self.value(x) # (B,T,hs) , aggregated elements
         out = wei @ v # (B, T, T) @ (B, T, hs) -> (B, T, hs) , changes output to head_size dimensions
