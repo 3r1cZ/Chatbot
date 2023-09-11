@@ -1,28 +1,37 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import pandas as pd
 
 # hyperparameters
-batch_size = 64 # number of independent sequences being processed in parallel
-block_size = 256 # maximum context length for predictions
+batch_size = 32 # number of independent sequences being processed in parallel
+block_size = 16 # maximum context length for predictions
 max_iters = 5000
 eval_interval = 500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu' # runs on gpu, else cpu
 eval_iters = 200
-n_embd = 384
+n_embd = 64
 n_head = 6
-n_layer = 6
+n_layer = 3
 dropout = 0.2
 # ------------
 
 torch.manual_seed(1337) # set seed for reproducibility
 
-with open('human_chat.txt', 'r', encoding='utf-8') as f:
-    text = f.read()
+ 
+# reading csv file
+text = pd.read_csv("/kaggle/input/chatbot-dataset-topical-chat/topical_chat.csv", usecols = ["message"])
+text = text["message"].tolist()
+# with open('human_chat.txt', 'r', encoding='utf-8') as f:
+#    text = f.read()
+#print(text)
 
 # all the unique characters that occur in the text
+
 chars = sorted(list(set(text)))
+# print(chars)
+
 vocab_size = len(chars)
 # create a mapping from characters to integers and vice versa
 stoi = { ch:i for i,ch in enumerate(chars) } # characters to integers
@@ -224,4 +233,4 @@ for iter in range(max_iters):
 
 # generate from the model
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
+print(decode(m.generate(context, max_new_tokens=500)[0].tolist())) 
