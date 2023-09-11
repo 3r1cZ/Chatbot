@@ -4,8 +4,8 @@ from torch.nn import functional as F
 import pandas as pd
 
 # hyperparameters
-batch_size = 4 # number of independent sequences being processed in parallel
-block_size = 8 # maximum context length for predictions
+batch_size = 16 # number of independent sequences being processed in parallel
+block_size = 16 # maximum context length for predictions
 max_iters = 5000
 eval_interval = 500
 learning_rate = 3e-4
@@ -23,12 +23,12 @@ torch.manual_seed(1337) # set seed for reproducibility
 # reading csv file
 text = pd.read_csv("topical_chat.csv", usecols = ["message"])
 text = text["message"].tolist()
+text = str(text)
 # with open('human_chat.txt', 'r', encoding='utf-8') as f:
 #    text = f.read()
 
 # all the unique characters that occur in the text
 chars = sorted(list(set(text)))
-
 vocab_size = len(chars)
 # create a mapping from characters to integers and vice versa
 stoi = { ch:i for i,ch in enumerate(chars) } # characters to integers
@@ -204,40 +204,42 @@ class GPTLanguageModel(nn.Module):
             # append sampled index to the running sequence
             idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
         return idx
+    
+    # outputting generated data from the model
+    def output(self, input=None):
+        if input is None:
+            context = torch.zeros((1, 1), dtype=torch.long, device=device)
+        else:
+            context = torch.tensor(encode(input), dtype=torch.long, device=device)[None, ...]
+        print(decode(m.generate(context, max_new_tokens=500)[0].tolist())) 
+
+# training the model
+def train(model):
+
+    # training loop
+    for iter in range(max_iters):
+
+        # every once in a while evaluate the loss on train and val sets
+        if iter % eval_interval == 0:
+            losses = estimate_loss()
+            print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+
+        # sample a batch of data
+        xb, yb = get_batch('train')
+
+        # evaluate the loss
+        logits, loss = model(xb, yb)
+        optimizer.zero_grad(set_to_none=True) # zeroing all the gradients from previous step
+        loss.backward() # getting the gradients from all of the parameters
+        optimizer.step() # using gradients to update parameters
+
+    model.output()
+    # saving model
+    torch.save(m.state_dict(), 'model.pt')
+
 
 model = GPTLanguageModel()
 m = model.to(device) # move model to device for cuda
-
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
-# training loop
-for iter in range(max_iters):
-
-    # every once in a while evaluate the loss on train and val sets
-    if iter % eval_interval == 0:
-        losses = estimate_loss()
-        print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
-
-    # sample a batch of data
-    xb, yb = get_batch('train')
-
-    # evaluate the loss
-    logits, loss = model(xb, yb)
-    optimizer.zero_grad(set_to_none=True) # zeroing all the gradients from previous step
-    loss.backward() # getting the gradients from all of the parameters
-    optimizer.step() # using gradients to update parameters
-
-# generate from the model
-context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(m.generate(context, max_new_tokens=200)[0].tolist())) 
-
-# saving model
-torch.save(m.state_dict(), 'model.pt')
-
-print('\n--------------------------------------------------------------------------\n')
-
-# restoring model
-m.load_state_dict(torch.load('model.pt'))
-m.eval()
-print(decode(m.generate(context, max_new_tokens=200)[0].tolist())) 
+train(m)

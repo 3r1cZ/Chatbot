@@ -60,7 +60,7 @@ def estimate_loss():
 # simple bigram model
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self):
+    def __init__(self, vocab_size):
         super().__init__()
         # each token directly reads off the logits for the next token from a lookup table
         self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
