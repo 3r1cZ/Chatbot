@@ -7,9 +7,6 @@ def restore(model):
     return model
 
 
-# encoded = g.encode("this better work")
-# print(encoded)
-
 model = g.GPTLanguageModel()
 model = restore(model)
 # g.train(model)

@@ -4,8 +4,8 @@ from torch.nn import functional as F
 import pandas as pd
 
 # hyperparameters
-batch_size = 16 # number of independent sequences being processed in parallel
-block_size = 16 # maximum context length for predictions
+batch_size = 8 # number of independent sequences being processed in parallel
+block_size = 4 # maximum context length for predictions
 max_iters = 5000
 eval_interval = 500
 learning_rate = 3e-4
@@ -233,7 +233,8 @@ def train(model):
         loss.backward() # getting the gradients from all of the parameters
         optimizer.step() # using gradients to update parameters
 
-    model.output()
+    m.output()
+    print('-------')
     # saving model
     torch.save(m.state_dict(), 'model.pt')
 
@@ -242,4 +243,3 @@ model = GPTLanguageModel()
 m = model.to(device) # move model to device for cuda
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-train(m)
