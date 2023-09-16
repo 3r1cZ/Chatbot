@@ -211,7 +211,7 @@ class GPTLanguageModel(nn.Module):
             context = torch.zeros((1, 1), dtype=torch.long, device=device)
         else:
             context = torch.tensor(encode(input), dtype=torch.long, device=device)[None, ...]
-        print(decode(m.generate(context, max_new_tokens=500)[0].tolist())) 
+        print(decode(m.generate(context, max_new_tokens=200)[0].tolist())) 
 
 # training the model
 def train(model):
@@ -238,8 +238,15 @@ def train(model):
     # saving model
     torch.save(m.state_dict(), 'model.pt')
 
+# loading model from save
+def restore(model):
+    model.load_state_dict(torch.load('model.pt', map_location=torch.device('cpu')))
+    model.eval()
+    return model
 
 model = GPTLanguageModel()
 m = model.to(device) # move model to device for cuda
 # create a PyTorch optimizer
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+
+model = restore(model)
