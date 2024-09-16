@@ -19,12 +19,6 @@ This project is an AI chatbot developed with Python using the bigram learning mo
 * Number of Layers: 6
 * Dropout Rate: 0.3
 
-## Things Learned
-* How to use Jupyter Notebook
-* How to use the PyTorch framework to organize and generate data
-* How to develop very simple machine learning algorithms such as the bigram learning model
-* How to develop a transformer model using the self-attention mechanism
-
 ## Preview
 This section contains an example output after training with the current model hyperparameters in [this section.](#current-model-hyperparameters)
 <img src='chatbotOutput2.png'>
