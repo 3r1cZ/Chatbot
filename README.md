@@ -4,7 +4,6 @@ This project is an AI chatbot developed with Python using the bigram learning mo
 
 ## Contents
 * [Model Hyperparameters](#current-model-hyperparameters)
-* [Things Learned](#things-learned)
 * [Preview](#preview)
 
 ## Current Model Hyperparameters
